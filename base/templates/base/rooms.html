@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CareSpace | Hospital Room Manager</title>
+  <style>
+    :root { --navy: #112b46; --blue: #2474d8; --sky: #eaf4ff; --ink: #17324d; --muted: #6d8094; --line: #e4ebf2; --surface: #ffffff; --green: #11866d; --red: #d95757; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f8fc; color: var(--ink); line-height: 1.45; }
+
+    header { background: linear-gradient(115deg, #102b47 0%, #174d75 58%, #197d9d 130%); color: white; padding: 26px 32px 64px; }
+    .brand, .hero, .tabs, .container { max-width: 1180px; margin-left: auto; margin-right: auto; }
+    .brand { display: flex; justify-content: space-between; align-items: center; font-size: .88rem; letter-spacing: .02em; }
+    .brand-name { display: flex; align-items: center; gap: 10px; font-size: 1.15rem; font-weight: 750; letter-spacing: -.02em; }
+    .brand-mark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: rgba(255,255,255,.15); font-size: 1.05rem; }
+    .live-status { display: flex; align-items: center; gap: 7px; color: #d9f8ec; font-size: .78rem; font-weight: 650; }
+    .live-status::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #52db9c; box-shadow: 0 0 0 4px rgba(82,219,156,.13); }
+    .hero { padding-top: 48px; }
+    .eyebrow { color: #9ed9f4; font-size: .72rem; font-weight: 750; text-transform: uppercase; letter-spacing: .13em; }
+    .hero h1 { max-width: 650px; margin-top: 9px; font-size: clamp(2rem, 4vw, 3rem); line-height: 1.12; letter-spacing: -.045em; }
+    .hero p { max-width: 500px; margin-top: 13px; color: #c4d8e7; font-size: .97rem; }
+
+    .tabs { display: flex; gap: 8px; padding: 0 16px; transform: translateY(-24px); }
+    .tab {
+      padding: 12px 19px; color: #60758a; cursor: pointer; background: rgba(255,255,255,.87);
+      font-size: .88rem; font-weight: 650; border: 1px solid #e6edf4; border-radius: 10px; box-shadow: 0 6px 16px rgba(17,43,70,.08); transition: all .2s;
+    }
+    .tab:hover { color: var(--blue); transform: translateY(-1px); }
+    .tab.active { color: white; background: var(--blue); border-color: var(--blue); }
+
+    .container { margin: 0 auto 48px; padding: 0 16px; }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .overview { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 4px 0 22px; }
+    .metric { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 17px 19px; box-shadow: 0 8px 24px rgba(37, 68, 100, .05); }
+    .metric-label { color: var(--muted); font-size: .76rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; }
+    .metric-value { margin-top: 4px; font-size: 1.65rem; line-height: 1; letter-spacing: -.045em; font-weight: 760; }
+    .metric-note { margin-top: 7px; color: #8494a4; font-size: .77rem; }
+
+    .card {
+      background: white; border: 1px solid var(--line); border-radius: 16px;
+      padding: 24px; margin-bottom: 18px; box-shadow: 0 9px 30px rgba(33, 61, 91, .055);
+    }
+    .card h2 { margin-bottom: 5px; font-size: 1.04rem; color: var(--ink); letter-spacing: -.015em; }
+    .card h2 + .form-row, .card h2 + table { margin-top: 18px; }
+    .card h2::before { content: ''; display: inline-block; width: 4px; height: 16px; margin-right: 9px; border-radius: 5px; vertical-align: -2px; background: #40b5d1; }
+
+    .form-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .form-row input, .form-row select {
+      flex: 1; min-width: 130px; padding: 10px 12px; background: #fbfdff;
+      border: 1px solid #dbe5ee; border-radius: 9px; font: inherit; font-size: .88rem; outline: none; color: var(--ink); transition: border-color .2s, box-shadow .2s;
+    }
+    .form-row input:focus, .form-row select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(36,116,216,.12); }
+
+    button {
+      padding: 9px 14px; border: none; border-radius: 8px;
+      cursor: pointer; font-size: .8rem; font-weight: 700; transition: transform .18s, filter .18s, box-shadow .18s;
+      white-space: nowrap;
+    }
+    button:hover { transform: translateY(-1px); filter: brightness(.97); }
+    .btn-primary { background: var(--blue); color: white; padding: 10px 17px; box-shadow: 0 5px 12px rgba(36,116,216,.23); }
+    .btn-edit, .btn-delete, .btn-save, .btn-cancel, .btn-beds, .btn-patients, .btn-discharge { padding: 6px 10px; font-size: .73rem; }
+    .btn-edit { background: #fff4dd; color: #a96500; } .btn-delete, .btn-discharge { background: #fff0f0; color: #b83d3d; }
+    .btn-save, .btn-beds { background: #e7f8f2; color: #08745d; } .btn-cancel { background: #edf1f5; color: #52677a; } .btn-patients { background: #ebf3ff; color: #276cc0; }
+
+    .card:has(table) { overflow-x: auto; }
+    table { width: 100%; min-width: 620px; border-collapse: collapse; }
+    th { color: #728598; text-align: left; padding: 10px 12px; font-size: .7rem; font-weight: 750; text-transform: uppercase; letter-spacing: .065em; border-bottom: 1px solid var(--line); }
+    td { padding: 13px 12px; border-bottom: 1px solid #eef2f6; font-size: .86rem; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafafa; }
+    .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .badge-available, .badge-occupied, .badge-bed { display: inline-block; border-radius: 20px; padding: 4px 9px; font-size: .72rem; font-weight: 750; }
+    .badge-available { background: #e3f8ef; color: #087357; } .badge-occupied { background: #ffeded; color: #b24040; } .badge-bed { background: #e8f2ff; color: #276cc0; }
+
+    .empty { text-align: center; color: #aaa; padding: 24px 0; font-size: 0.9rem; }
+
+    input[data-edit] {
+      border: 1px solid #4f46e5; border-radius: 6px;
+      padding: 4px 8px; font-size: 0.88rem; width: 100%;
+    }
+
+    #toast {
+      position: fixed; bottom: 24px; right: 24px; color: white; padding: 12px 17px; border-radius: 10px;
+      font-size: .84rem; display: none; box-shadow: 0 12px 28px rgba(17,43,70,.22); z-index: 999;
+    }
+    @media (max-width: 640px) { header { padding: 20px 18px 58px; } .hero { padding-top: 35px; } .hero h1 { font-size: 2rem; } .tabs, .container { padding-left: 12px; padding-right: 12px; } .overview { grid-template-columns: 1fr; gap: 9px; } .metric { padding: 14px 16px; } .card { padding: 18px 15px; border-radius: 13px; } .form-row > * { width: 100%; flex-basis: 100%; } .form-row input, .form-row select { min-width: 0; } .brand > span:last-child { display: none; } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-name"><span class="brand-mark">✚</span> CareSpace</div>
+    <span class="live-status">Operations online</span>
+  </div>
+  <div class="hero">
+    <div class="eyebrow">Hospital operations</div>
+    <h1>Manage every room with confidence.</h1>
+    <p>A clear, focused view of your wards, beds, and patients—designed for the pace of care.</p>
+  </div>
+</header>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('rooms')">🏠 Rooms</div>
+  <div class="tab" onclick="switchTab('patients')">🧑‍⚕️ Patients</div>
+</div>
+
+<div class="container">
+
+  <!-- ROOMS TAB -->
+  <div id="tab-rooms" class="page active">
+
+    <div class="overview" aria-label="Hospital overview">
+      <div class="metric"><div class="metric-label">Total rooms</div><div class="metric-value" id="stat-rooms">—</div><div class="metric-note">Across all wards</div></div>
+      <div class="metric"><div class="metric-label">Available beds</div><div class="metric-value" id="stat-available">—</div><div class="metric-note">Ready for admissions</div></div>
+      <div class="metric"><div class="metric-label">Occupancy</div><div class="metric-value" id="stat-occupancy">—</div><div class="metric-note">Of beds currently in use</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Add New Room</h2>
+      <div class="form-row">
+        <input id="r-name" placeholder="Room name"/>
+        <input id="r-desc" placeholder="Description (optional)"/>
+        <button class="btn-primary" onclick="addRoom()">+ Add Room</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>All Rooms</h2>
+      <table>
+        <thead>
+          <tr><th>#</th><th>Name</th><th>Description</th><th>Available Beds</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="roomTable"><tr><td colspan="5" class="empty">Loading...</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- Beds Panel -->
+    <div class="card" id="bedsPanel" style="display:none">
+      <h2 id="bedsPanelTitle">Beds</h2>
+      <div class="form-row" style="margin-bottom:16px">
+        <input id="bed-number" placeholder="Bed number (e.g. B1)"/>
+        <button class="btn-primary" onclick="addBed()">+ Add Bed</button>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Bed No.</th><th>Status</th><th>Patient</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="bedTable"><tr><td colspan="4" class="empty">No beds yet.</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- Room Patients Panel -->
+    <div class="card" id="roomPatientsPanel" style="display:none">
+      <h2 id="roomPatientsPanelTitle">Patients</h2>
+      <table>
+        <thead>
+          <tr><th>#</th><th>Name</th><th>Age</th><th>Disease</th><th>Bed</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="roomPatientTable"><tr><td colspan="6" class="empty">No patients.</td></tr></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- PATIENTS TAB -->
+  <div id="tab-patients" class="page">
+
+    <div class="card">
+      <h2>Admit Patient & Allocate Bed</h2>
+      <div class="form-row">
+        <input id="p-name" placeholder="Patient name"/>
+        <input id="p-age" type="number" placeholder="Age" min="1" style="max-width:90px"/>
+        <input id="p-disease" placeholder="Disease / Condition"/>
+        <select id="p-room"><option value="">Select Room</option></select>
+        <button class="btn-primary" onclick="admitPatient()">Admit & Allocate</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>All Admitted Patients</h2>
+      <table>
+        <thead>
+          <tr><th>#</th><th>Name</th><th>Age</th><th>Disease</th><th>Room</th><th>Bed</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="patientTable"><tr><td colspan="7" class="empty">Loading...</td></tr></tbody>
+      </table>
+    </div>
+
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const API = '/api';
+  let selectedRoomId = null;
+
+  function getCookie(name) {
+    const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+    return v ? v[2] : '';
+  }
+
+  function showToast(msg, color = '#10b981') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.background = color;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 2500);
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', ['rooms','patients'][i] === tab));
+    document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    if (tab === 'patients') { fetchPatients(); populateRoomSelect(); }
+    if (tab === 'rooms') { fetchRooms(); }
+  }
+
+  function hidePanels() {
+    document.getElementById('bedsPanel').style.display = 'none';
+    document.getElementById('roomPatientsPanel').style.display = 'none';
+  }
+
+  // ---- ROOMS ----
+  async function fetchRooms() {
+    const res = await fetch(API + '/rooms/');
+    const rooms = await res.json();
+    const tbody = document.getElementById('roomTable');
+    if (!rooms.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty">No rooms yet. Add one above!</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rooms.map((r, i) => `
+      <tr id="row-${r.id}">
+        <td>${i + 1}</td>
+        <td>${r.name}</td>
+        <td>${r.description || '—'}</td>
+        <td id="ravail-${r.id}"><span style="color:#aaa;font-size:0.82rem">Loading...</span></td>
+        <td class="actions">
+          <button class="btn-edit" onclick="editRoom(${r.id},'${esc(r.name)}','${esc(r.description)}')">Edit</button>
+          <button class="btn-delete" onclick="deleteRoom(${r.id})">Delete</button>
+          <button class="btn-beds" onclick="showBeds(${r.id},'${esc(r.name)}')">Beds</button>
+          <button class="btn-patients" onclick="showRoomPatients(${r.id},'${esc(r.name)}')">Patients</button>
+        </td>
+      </tr>
+    `).join('');
+    rooms.forEach(r => updateAvailCount(r.id));
+    updateDashboardStats(rooms);
+  }
+
+  async function updateDashboardStats(rooms) {
+    const allBeds = await Promise.all(rooms.map(async room => {
+      const res = await fetch(API + '/rooms/' + room.id + '/beds/');
+      return res.ok ? res.json() : [];
+    }));
+    const beds = allBeds.flat();
+    const available = beds.filter(bed => bed.is_available).length;
+    const occupied = beds.length - available;
+    document.getElementById('stat-rooms').textContent = rooms.length;
+    document.getElementById('stat-available').textContent = available;
+    document.getElementById('stat-occupancy').textContent = beds.length ? Math.round((occupied / beds.length) * 100) + '%' : '—';
+  }
+
+  async function updateAvailCount(roomId) {
+    const res = await fetch(API + '/rooms/' + roomId + '/beds/');
+    const beds = await res.json();
+    const el = document.getElementById('ravail-' + roomId);
+    if (!el) return;
+    if (!beds.length) {
+      el.innerHTML = '<span style="color:#aaa;font-size:0.82rem">No beds added</span>';
+      return;
+    }
+    const avail = beds.filter(b => b.is_available).length;
+    el.innerHTML = '<span class="' + (avail > 0 ? 'badge-available' : 'badge-occupied') + '">' + avail + ' available / ' + beds.length + ' total</span>';
+  }
+
+  async function addRoom() {
+    const name = document.getElementById('r-name').value.trim();
+    const description = document.getElementById('r-desc').value.trim();
+    if (!name) return showToast('Room name required!', '#ef4444');
+    const res = await fetch(API + '/rooms/add/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify({ name, description })
+    });
+    if (!res.ok) return showToast('Failed to add room!', '#ef4444');
+    document.getElementById('r-name').value = '';
+    document.getElementById('r-desc').value = '';
+    showToast('Room added!');
+    fetchRooms();
+    populateRoomSelect();
+  }
+
+  function editRoom(id, name, desc) {
+    document.getElementById('row-' + id).innerHTML = `
+      <td colspan="2"><input data-edit id="e-rname-${id}" value="${name}"/></td>
+      <td><input data-edit id="e-rdesc-${id}" value="${desc === '—' ? '' : desc}"/></td>
+      <td>—</td>
+      <td class="actions">
+        <button class="btn-save" onclick="saveRoom(${id})">Save</button>
+        <button class="btn-cancel" onclick="fetchRooms()">Cancel</button>
+      </td>`;
+  }
+
+  async function saveRoom(id) {
+    const name = document.getElementById('e-rname-' + id).value.trim();
+    const description = document.getElementById('e-rdesc-' + id).value.trim();
+    if (!name) return showToast('Name required!', '#ef4444');
+    await fetch(API + '/rooms/update/' + id + '/', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify({ name, description })
+    });
+    showToast('Room updated!');
+    fetchRooms();
+  }
+
+  async function deleteRoom(id) {
+    if (!confirm('Delete this room and all its beds?')) return;
+    await fetch(API + '/rooms/delete/' + id + '/', { method: 'DELETE', headers: { 'X-CSRFToken': getCookie('csrftoken') } });
+    if (selectedRoomId === id) hidePanels();
+    showToast('Room deleted!', '#ef4444');
+    fetchRooms();
+    populateRoomSelect();
+  }
+
+  // ---- BEDS ----
+  function showBeds(roomId, roomName) {
+    selectedRoomId = roomId;
+    document.getElementById('roomPatientsPanel').style.display = 'none';
+    document.getElementById('bedsPanel').style.display = 'block';
+    document.getElementById('bedsPanelTitle').textContent = 'Beds in "' + roomName + '"';
+    document.getElementById('bedsPanel').scrollIntoView({ behavior: 'smooth' });
+    fetchBeds();
+  }
+
+  async function fetchBeds() {
+    if (!selectedRoomId) return;
+    const res = await fetch(API + '/rooms/' + selectedRoomId + '/beds/');
+    const beds = await res.json();
+    const tbody = document.getElementById('bedTable');
+    if (!beds.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty">No beds in this room.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = beds.map(b => `
+      <tr>
+        <td><strong>${b.bed_number}</strong></td>
+        <td><span class="${b.is_available ? 'badge-available' : 'badge-occupied'}">${b.is_available ? 'Available' : 'Occupied'}</span></td>
+        <td>${b.patient_name || '—'}</td>
+        <td>${b.is_available ? '<button class="btn-delete" onclick="deleteBed(' + b.id + ')">Remove</button>' : '<span style="color:#aaa;font-size:0.8rem">In use</span>'}</td>
+      </tr>`).join('');
+    updateAvailCount(selectedRoomId);
+  }
+
+  async function addBed() {
+    const bed_number = document.getElementById('bed-number').value.trim();
+    if (!bed_number) return showToast('Bed number required!', '#ef4444');
+    const res = await fetch(API + '/rooms/' + selectedRoomId + '/beds/add/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify({ bed_number })
+    });
+    if (!res.ok) return showToast('Failed to add bed!', '#ef4444');
+    document.getElementById('bed-number').value = '';
+    showToast('Bed added!');
+    fetchBeds();
+    fetchRooms();
+  }
+
+  async function deleteBed(id) {
+    if (!confirm('Remove this bed?')) return;
+    await fetch(API + '/beds/delete/' + id + '/', { method: 'DELETE', headers: { 'X-CSRFToken': getCookie('csrftoken') } });
+    showToast('Bed removed!', '#ef4444');
+    fetchBeds();
+    fetchRooms();
+  }
+
+  // ---- ROOM PATIENTS ----
+  async function showRoomPatients(roomId, roomName) {
+    document.getElementById('bedsPanel').style.display = 'none';
+    document.getElementById('roomPatientsPanel').style.display = 'block';
+    document.getElementById('roomPatientsPanelTitle').textContent = 'Patients in "' + roomName + '"';
+    document.getElementById('roomPatientsPanel').scrollIntoView({ behavior: 'smooth' });
+    const res = await fetch(API + '/rooms/' + roomId + '/patients/');
+    const patients = await res.json();
+    const tbody = document.getElementById('roomPatientTable');
+    if (!patients.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty">No patients in this room.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = patients.map((p, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${p.name}</td>
+        <td>${p.age}</td>
+        <td>${p.disease}</td>
+        <td>${p.bed_info ? '<span class="badge-bed">' + p.bed_info.bed_number + '</span>' : '—'}</td>
+        <td><button class="btn-discharge" onclick="dischargeFromRoom(${p.id},'${esc(p.name)}',${roomId},'${esc(roomName)}')">Discharge</button></td>
+      </tr>`).join('');
+  }
+
+  async function dischargeFromRoom(id, name, roomId, roomName) {
+    if (!confirm('Discharge ' + name + '?')) return;
+    await fetch(API + '/patients/discharge/' + id + '/', { method: 'POST', headers: { 'X-CSRFToken': getCookie('csrftoken') } });
+    showToast(name + ' discharged!', '#f59e0b');
+    showRoomPatients(roomId, roomName);
+    fetchRooms();
+  }
+
+  // ---- ALL PATIENTS ----
+  async function populateRoomSelect() {
+    const res = await fetch(API + '/rooms/');
+    const rooms = await res.json();
+    const sel = document.getElementById('p-room');
+    sel.innerHTML = '<option value="">Select Room</option>' +
+      rooms.map(r => '<option value="' + r.id + '">' + r.name + '</option>').join('');
+  }
+
+  async function fetchPatients() {
+    const res = await fetch(API + '/patients/');
+    const patients = await res.json();
+    const tbody = document.getElementById('patientTable');
+    if (!patients.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty">No patients admitted.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = patients.map((p, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${p.name}</td>
+        <td>${p.age}</td>
+        <td>${p.disease}</td>
+        <td>${p.bed_info ? p.bed_info.room_name : '—'}</td>
+        <td>${p.bed_info ? '<span class="badge-bed">' + p.bed_info.bed_number + '</span>' : '—'}</td>
+        <td><button class="btn-discharge" onclick="discharge(${p.id},'${esc(p.name)}')">Discharge</button></td>
+      </tr>`).join('');
+  }
+
+  async function admitPatient() {
+    const name = document.getElementById('p-name').value.trim();
+    const age = parseInt(document.getElementById('p-age').value);
+    const disease = document.getElementById('p-disease').value.trim();
+    const room_id = document.getElementById('p-room').value;
+    if (!name || !age || !disease || !room_id) return showToast('All fields required!', '#ef4444');
+    const res = await fetch(API + '/patients/allocate/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify({ name, age, disease, room_id })
+    });
+    const data = await res.json();
+    if (!res.ok) return showToast(data.error || 'Failed!', '#ef4444');
+    ['p-name','p-age','p-disease'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('p-room').value = '';
+    showToast('Bed allocated to ' + name + '!');
+    fetchPatients();
+    fetchRooms();
+  }
+
+  async function discharge(id, name) {
+    if (!confirm('Discharge ' + name + '?')) return;
+    await fetch(API + '/patients/discharge/' + id + '/', { method: 'POST', headers: { 'X-CSRFToken': getCookie('csrftoken') } });
+    showToast(name + ' discharged, bed freed!', '#f59e0b');
+    fetchPatients();
+    fetchRooms();
+    if (selectedRoomId) fetchBeds();
+  }
+
+  function esc(s) { return (s || '').replace(/'/g, "\\'"); }
+
+  fetchRooms();
+  populateRoomSelect();
+</script>
+</body>
+</html>
